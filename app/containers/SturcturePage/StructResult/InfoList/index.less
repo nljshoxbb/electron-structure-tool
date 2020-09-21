@@ -1,0 +1,26 @@
+.info-list {
+  position: relative;
+  &-total {
+    position: absolute;
+    top: -42px;
+    right: 0;
+    & > .info-list-item__value {
+      margin-left: 10px;
+    }
+  }
+
+  &-item {
+    margin-bottom: 16px;
+  
+    &__label {
+      font-size: 14px;
+      font-family: PingFangSC-Medium, PingFang SC;
+      font-weight: 500;
+      color: rgba(0, 0, 0, 0.85);
+      line-height: 21px;
+    }
+    &__value {
+      word-break: break-all;
+    }
+  }
+}
