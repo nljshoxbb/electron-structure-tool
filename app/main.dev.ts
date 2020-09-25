@@ -79,7 +79,7 @@ const createWindow = async () => {
 
   devtools = new BrowserWindow();
   mainWindow.webContents.setDevToolsWebContents(devtools.webContents);
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 
   mainWindow.loadURL(`file://${__dirname}/app.html`);
 

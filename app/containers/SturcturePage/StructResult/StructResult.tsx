@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { Skeleton, Empty } from 'antd';
+import { Empty } from 'antd';
 import { isEmpty } from 'lodash';
 import moment from 'moment';
+import { useSize } from '@umijs/hooks';
 
 import PictureView from './Picture/PictureView';
 import InfoList from './InfoList';
 import { StructureKeyMapper, TIME_FORMAT_STRING } from './Picture/utils/const';
 import './StructResult.less';
-import { useSize } from '@umijs/hooks';
 
 export interface StructResultProps {
   data: any;

@@ -1,7 +1,7 @@
 {
   "name": "electron-structe-picture-tool",
   "productName": "StructePictureTool",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "结构化工具",
   "scripts": {
     "build": "concurrently \"yarn build-main\" \"yarn build-renderer\"",
@@ -279,6 +279,7 @@
     "@reduxjs/toolkit": "^1.4.0",
     "@umijs/hooks": "^1.9.3",
     "antd": "^4.6.4",
+    "codemirror": "^5.58.0",
     "connected-react-router": "^6.6.1",
     "electron-debug": "^3.1.0",
     "electron-log": "^4.2.2",

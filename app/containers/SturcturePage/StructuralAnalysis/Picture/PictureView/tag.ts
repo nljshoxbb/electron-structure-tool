@@ -1,5 +1,3 @@
-import isEmpty from 'lodash/isEmpty';
-import isObject from 'lodash/isObject';
 import {
   FaceAttrMapper,
   ChengGuansMapper,
@@ -47,8 +45,6 @@ export const formatTagLabel = ({
 
         Object.keys(faceAttrObject.pose).forEach((i) => {
           poseRes.push(`${i}:${faceAttrObject.pose[i]}`);
-          // eslint-disable-next-line react/react-in-jsx-scope
-          // poseRes.push(<br />);
         });
 
         const info = [
@@ -209,17 +205,31 @@ export const formatTagLabel = ({
       //  车牌类型、车牌颜色、车牌号码、车牌遮挡
       if (v.plates) {
         v.plates.forEach((k) => {
+          const platesInfo = [];
           if (k.stylename) {
-            info.push({ label: '车牌类型', value: k.stylename });
+            const plateType = { label: '车牌类型', value: k.stylename };
+            info.push(plateType);
+            platesInfo.push(plateType);
           }
 
           if (k.color) {
-            info.push({ label: '车牌颜色', value: k.color.colorname });
+            const plateColor = { label: '车牌颜色', value: k.color.colorname };
+            info.push(plateColor);
+            platesInfo.push(plateColor);
           }
 
           if (k.platetext) {
-            info.push({ label: '车牌号码', value: k.platetext });
+            const plateNumber = { label: '车牌号码', value: k.platetext };
+            info.push(plateNumber);
+            platesInfo.push(plateNumber);
           }
+
+          rects.push({
+            type: 'plate',
+            value: `${k.rect.left},${k.rect.top},${k.rect.width},${k.rect.height}`,
+            confidence: fixedDec(k.confidence),
+            info: platesInfo,
+          });
         });
       }
 

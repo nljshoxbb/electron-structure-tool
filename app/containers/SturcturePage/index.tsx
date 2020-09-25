@@ -1,71 +1,36 @@
-import Editor, { monaco } from '@monaco-editor/react';
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from 'antd';
 import { useSize, useResponsive } from '@umijs/hooks';
-import MonokaiJson from 'monaco-themes/themes/Monokai.json';
-import { remote } from 'electron';
-import path from 'path';
+import CodeMirror, { Editor } from 'codemirror';
 import StructResult from './StructResult/StructResult';
+import StructuralAnalysis from './StructuralAnalysis';
+
 import defaultResultJson from './defaultJson.json';
 
-// https://github.com/microsoft/monaco-editor-samples/blob/master/electron-amd-nodeIntegration/electron-index.html
-function uriFromPath(_path) {
-  let pathName = path.resolve(_path).replace(/\\/g, '/');
-
-  if (pathName.length > 0 && pathName.charAt(0) !== '/') {
-    pathName = `/${pathName}`;
-  }
-  return encodeURI(`file://${pathName}`);
-}
-
-// var remote = require('electron').remote,
-//   arg = remote.getGlobal('sharedObject').prop1;
-// console.log(arg);
-
-// let buildArgs;
-// if (remote.getGlobal('sharedObject')) {
-//   buildArgs = remote.getGlobal('sharedObject').prop1;
-// }
-
-// if (buildArgs && buildArgs[buildArgs.length - 1].indexOf('dev') !== -1) {
-//   monaco.config({
-//     urls: {
-//       monacoLoader: uriFromPath(
-//         path.join(__dirname, '../node_modules/monaco-editor/min/vs/loader.js')
-//       ),
-//       monacoBase: uriFromPath(
-//         path.join(__dirname, '../node_modules/monaco-editor/min/vs')
-//       ),
-//     },
-//   });
-// }
+import './formatting';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/brace-fold';
+import 'codemirror/addon/fold/indent-fold';
+import 'codemirror/addon/fold/markdown-fold';
+import 'codemirror/addon/fold/comment-fold';
+import 'codemirror/addon/search/search';
+import 'codemirror/addon/search/matchesonscrollbar';
+import 'codemirror/mode/javascript/javascript';
+import 'codemirror/addon/scroll/simplescrollbars';
+import 'codemirror/addon/dialog/dialog';
 
 export default function MonacoEditorComponent() {
-  const [isEditorReady, setIsEditorReady] = useState(false);
   const [result, setResult] = useState({});
-  const getEditorValue = useRef(null);
-  const editor = useRef(null);
-  const [sizeState, ref] = useSize<HTMLDivElement>(
-    document.getElementById('root')
-  );
+  const editor = useRef<Editor>({});
+  const [sizeState] = useSize<HTMLDivElement>(document.getElementById('root'));
 
   useResponsive();
 
-  function handleEditorDidMount(getEditorValueFn, editorInstance) {
-    setIsEditorReady(true);
-    getEditorValue.current = getEditorValueFn;
-    editor.current = editorInstance;
-    console.log(editorInstance);
-  }
-
   function handleShowValue() {
-    if (getEditorValue.current()) {
-      editor.current
-        .getAction('editor.action.formatDocument')
-        .run()
-        .then(() => console.log('finished'));
+    if (editor.current?.getValue()) {
       try {
-        setResult(JSON.parse(getEditorValue.current()));
+        setResult(JSON.parse(editor.current?.getValue()));
       } catch (error) {
         setResult({});
       }
@@ -74,44 +39,63 @@ export default function MonacoEditorComponent() {
     }
   }
 
+  function getSelectedRange() {
+    return {
+      from: editor.current.getCursor(true),
+      to: editor.current.getCursor(false),
+    };
+  }
+
+  function autoFormatSelection() {
+    const range = getSelectedRange();
+    editor.current.autoFormatRange(range.from, range.to);
+  }
+
   useEffect(() => {
-    if (isEditorReady) {
-      setTimeout(function () {
-        editor.current.getAction('editor.action.formatDocument').run();
-      }, 300);
-      // import('monaco-themes/themes/Monokai.json').then((data) => {
-      //   console.log(data, editor.current.defineTheme);
-      //   editor.current.defineTheme('monokai', data);
-      // });
-    }
-  }, [isEditorReady]);
+    const editContent = document.getElementById(
+      'codemirror'
+    ) as HTMLTextAreaElement;
+
+    editor.current = CodeMirror.fromTextArea(editContent, {
+      scrollbarStyle: 'simple',
+      theme: 'monokai',
+      mode: { name: 'javascript', json: true },
+      lineNumbers: true,
+      extraKeys: {
+        'Alt-F': 'findPersistent',
+        'Ctrl-F': autoFormatSelection,
+      },
+      foldGutter: true,
+      gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+      value: '123',
+    });
+    editor.current.setSize('100%', '100%');
+
+    editor.current.setValue(JSON.stringify(defaultResultJson));
+
+    CodeMirror.commands.selectAll(editor.current);
+    autoFormatSelection();
+    editor.current.on('change', function change(val) {});
+  }, []);
 
   const containerHeight = sizeState.height - 80;
-
+  console.log(result);
   return (
     <div style={{ height: containerHeight, width: '100%' }}>
-      <div style={{ display: 'flex', height: '100%' }}>
-        <div style={{ flex: 1 }}>
-          <Editor
-            height="100%"
-            width="100%"
-            language="JSON"
-            theme="dark"
-            value={JSON.stringify(defaultResultJson)}
-            editorDidMount={handleEditorDidMount}
-            options={{ formatOnPaste: true }}
-          />
+      <div style={{ height: '100%' }}>
+        <div style={{ width: '50%', height: '100%', float: 'left' }}>
+          <textarea id="codemirror" />
         </div>
-        <div style={{ flex: 1 }}>
-          <StructResult data={result} layout={{ height: containerHeight }} />
+        <div style={{ width: '50%', height: '100%', float: 'left' }}>
+          {/* <StructResult data={result} layout={{ height: containerHeight }} /> */}
+          <StructuralAnalysis
+            data={result}
+            layout={{ height: containerHeight }}
+          />
         </div>
       </div>
       <div style={{ textAlign: 'center', padding: 16 }}>
-        <Button
-          onClick={handleShowValue}
-          disabled={!isEditorReady}
-          type="primary"
-        >
+        <Button onClick={handleShowValue} type="primary">
           数据可视化
         </Button>
       </div>
